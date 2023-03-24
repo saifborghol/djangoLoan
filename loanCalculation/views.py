@@ -77,3 +77,44 @@ def Payement_Loan_with_fixed_interest_rate(request):
         return JsonResponse(data, status=405)
     
 
+@api_view(['POST'])
+def Payement_Loan_with_Variable_interest_rate(request):
+    if request.method == 'POST':
+        loan_amount = float(request.data['loan_amount'])
+        interest_rates = [0.05, 0.0575, 0.06]
+        loan_duration_years = int(request.data['loan_duration_years'])
+        loan_duration_months = loan_duration_years * 12
+
+        y1 = loan_duration_years * 0.25 # first year (25% de la durée du pret)
+        y2 = y1 + loan_duration_years * 0.5  # second year 
+        y3 = y1 + y2 # third year
+
+        interest1 = interest_rates[0]
+        interest2 = interest_rates[1]
+        interest3 = interest_rates[2]
+
+        monthly_payment = 0
+        for year in range(loan_duration_years):
+            if year < y1:
+                rate = interest1/12
+            elif year < y2:
+                rate = interest2/12
+            elif year < y3:
+                rate = interest3/12
+            else:
+                rate = interest3/12
+
+        monthly_payment = npf.pmt(rate, loan_duration_months, loan_amount)*-1
+
+        response_data = {
+        'monthly_payment': "${:,.2f}".format(monthly_payment)
+    }
+        return JsonResponse(response_data, status=200)
+    else:
+        data = {
+            'message': 'error',
+            'error_description': 'Invalid request method.',
+        }
+        return JsonResponse(data, status=405)
+    
+
